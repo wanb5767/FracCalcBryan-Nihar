@@ -1,7 +1,7 @@
 
 class xmain {
     public static void main(String[] args) {
-        String result = produceAnswer("1_2/3 + 5_3/6");
+        String result = produceAnswer("1_2/3 - 5_3/6");
         System.out.println(result);
     }
     // String
@@ -50,6 +50,9 @@ class xmain {
                 fin[2] = rs1[2]*rs2[2];
                 break;
             case "-":
+            fin[0] = rs1[0] - rs2[0];
+            fin[1] = rs1[1]*rs2[2] - rs2[1]*rs1[2];
+            fin[2] = rs1[2]*rs2[2];                
                 break;
             case "*":
                 break;
