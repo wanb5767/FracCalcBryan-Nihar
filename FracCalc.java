@@ -1,7 +1,7 @@
 
 class xmain {
     public static void main(String[] args) {
-        String result = produceAnswer("1_2/3 - 5_3/6");
+        String result = produceAnswer("8/4 + 2");
         System.out.println(result);
     }
     // String
@@ -10,6 +10,7 @@ class xmain {
     }
     public static int[] stringToInt(String num) {
         int[] rs = new int[3];
+        rs[2] = 1; // dominator
         if (num.indexOf("/") == -1) {
             // no fraction, its a integer only
             rs[0] = Integer.parseInt(num);
@@ -33,33 +34,95 @@ class xmain {
         // now, rs has three elements, 1st for integer, 2nd for numerator, 3rd dominator
         return String.format("whole:%d numerator:%d denominator:%d", rs[0], rs[1], rs[2]);
     }
+    // reducing the form of fraction: 9/3 -> 3_0/3
+    //  0_8/4 -> 2_0/1
+    //  1_6/4 -> 2_1/2
+    public static int[] fReduct(int[] num) {
+        int[] rs = num;
+        rs[0] += rs[1]/rs[2];
+        rs[1] %= rs[2];
+        if (rs[1] == 0) rs[2] = 1;
+        // common factor
+        return rs;
+    }
+    // two key operators: + ; *
+    public static int[] fAdd(int[] num1, int[] num2) {
+        // num1: 4_2/3 => [4,2,3] 
+        // n1 = 4*3+2
+        // d1 = 2
+        int n1 = num1[0]*num1[2]+num1[1];
+        int d1 = num1[2];
+        int n2 = num2[0]*num2[2]+num2[1];
+        int d2 = num2[2];
+        // the summation
+        int ntot = n1*d2 + n2*d1;
+        int dtot = d1 * d2;
+        int[] rs = new int[3];
+        rs[0] = ntot / dtot;
+        rs[1] = ntot % dtot;
+        rs[2] = dtot;
+        return rs;
+    }
+    // two key operators: + ; *
+    public static int[] fMul(int[] num1, int[] num2) {
+        // turn them into fractions
+        int n1 = num1[0]*num1[2]+num1[1];
+        int d1 = num1[2];
+        int n2 = num2[0]*num2[2]+num2[1];
+        int d2 = num2[2];
+        // the multiplication: 1/2 * 3/5 = 3/10
+        int nmul = n1*n2;
+        int dmul = d1*d2;
+        int[] rs = new int[3];
+        rs[0] = nmul / dmul;
+        rs[1] = nmul % dmul;
+        rs[2] = dmul;
+        return rs;
+    }
+    public static int[] fDiv(int[] num1, int[] num2) {
+        // turn them into fractions
+        int n1 = num1[0]*num1[2]+num1[1];
+        int d1 = num1[2];
+        int n2 = num2[0]*num2[2]+num2[1];
+        int d2 = num2[2];
+        // the multiplication: 1/2 * 3/5 = 3/10
+        int ndiv = n1*d2;
+        int ddiv = d1*n2;
+        int[] rs = new int[3];
+        rs[0] = ndiv / ddiv;
+        rs[1] = ndiv % ddiv;
+        rs[2] = ddiv;
+        return rs;
+    }
+
     public static String produceAnswer(String exp) {
         String num1 = exp.split(" ")[0];
         String operator = exp.split(" ")[1];
         String num2 = exp.split(" ")[2];
-        int[] rs1 = stringToInt(num1);
-        int[] rs2 = stringToInt(num2);
-        int[] fin = new int[3];
+        int[] val1 = stringToInt(num1);
+        int[] val2 = stringToInt(num2);
+        int[] result = new int[3];
         switch (operator) {
             // 1/3 + 2/5 :
             //  numerator = 1*5 + 2*3
             // dominator = 3*5
             case "+":
-                fin[0] = rs1[0] + rs2[0];
-                fin[1] = rs1[1]*rs2[2] + rs2[1]*rs1[2];
-                fin[2] = rs1[2]*rs2[2];
+                result = fAdd(val1, val2);
                 break;
             case "-":
-            fin[0] = rs1[0] - rs2[0];
-            fin[1] = rs1[1]*rs2[2] - rs2[1]*rs1[2];
-            fin[2] = rs1[2]*rs2[2];                
+                // build -1 in form of array
+                int[] minus = new int[]{-1,0,1};
+                result = fAdd( val1, fMul(minus,val2) );
                 break;
             case "*":
+                result = fMul(val1, val2);
                 break;
             case "/":
+                result = fDiv(val1, val2);
                 break;
         }
+        result = fReduct(result);
         // now, rs has three elements, 1st for integer, 2nd for numerator, 3rd dominator
-        return String.format("whole:%d numerator:%d denominator:%d", fin[0], fin[1], fin[2]);
+        return String.format("whole:%d numerator:%d denominator:%d", result[0], result[1], result[2]);
     }
 }
